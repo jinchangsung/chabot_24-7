@@ -1,0 +1,26 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #eef2f7; font-family: 'Pretendard', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; }
+
+.chat-container { width: 420px; height: 700px; background: white; border-radius: 24px; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; }
+
+header { background: #2d3436; color: white; padding: 25px 20px; display: flex; align-items: center; }
+.main-profile { width: 55px; height: 55px; border-radius: 18px; object-fit: cover; border: 2px solid #55efc4; }
+.profile-container { position: relative; margin-right: 15px; }
+.status-dot { position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; background: #55efc4; border: 2px solid #2d3436; border-radius: 50%; }
+.header-text h1 { font-size: 18px; margin-bottom: 4px; }
+.header-text p { font-size: 12px; opacity: 0.7; }
+
+.chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background: #fcfcfc; }
+.msg-wrapper { display: flex; width: 100%; }
+.user-wrapper { justify-content: flex-end; }
+.chat-icon { width: 32px; height: 32px; margin-right: 8px; border-radius: 50%; background: #eee; }
+
+.message { max-width: 80%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
+.bot { background: white; color: #333; border: 1px solid #eee; border-top-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+.user { background: #0984e3; color: white; border-top-right-radius: 4px; }
+
+.input-area { padding: 20px; background: white; display: flex; align-items: center; gap: 10px; border-top: 1px solid #f1f1f1; }
+#user-input { flex: 1; border: none; background: #f1f3f5; padding: 12px 20px; border-radius: 25px; outline: none; font-size: 14px; }
+#send-btn { background: #0984e3; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+#send-btn svg { width: 20px; height: 20px; fill: white; margin-left: 2px; }
+#send-btn:hover { background: #0773c5; transform: scale(1.05); }

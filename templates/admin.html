@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbot JINPD Admin - 지식 관리 대시보드</title>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; padding: 20px; background: #f4f7f6; color: #2d3436; }
+        .admin-section { max-width: 900px; margin: 0 auto; }
+        .knowledge-card { background: white; margin-bottom: 30px; padding: 25px; border-radius: 12px; border: 2px solid #0984e3; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .knowledge-card h3 { margin-top: 0; color: #0984e3; }
+        #knowledge-input { width: 100%; height: 120px; padding: 15px; border: 1px solid #dfe6e9; border-radius: 8px; font-size: 14px; resize: none; box-sizing: border-box; }
+        .save-btn { margin-top: 15px; padding: 12px 25px; background: #00b894; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .save-btn:hover { background: #009477; }
+        .file-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #fff5f0; border-radius: 6px; margin-bottom: 8px; border: 1px solid #ffdab9; }
+        .user-group { background: white; margin-bottom: 20px; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .user-id { font-weight: bold; color: #007bff; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .chat-line { margin: 8px 0; padding: 8px; border-radius: 6px; font-size: 14px; }
+        .role-user { background: #f1f3f5; }
+        .role-bot { color: #28a745; background: #f0fff4; border-left: 4px solid #28a745; }
+    </style>
+</head>
+<body>
+    <div class="admin-section">
+        <h1>Global JINPD AI 관리자 모드</h1>
+
+        <div class="knowledge-card">
+            <h3>📚 챗봇 지식 창고 데이터 등록</h3>
+            <p style="font-size: 13px; color: #636e72;">간단한 지식을 직접 타이핑하여 등록합니다.</p>
+            <textarea id="knowledge-input" placeholder="학습할 내용을 입력하세요..."></textarea>
+            <button class="save-btn" onclick="saveKnowledge()">지식 저장하기</button>
+
+            <div style="border-top: 1px dashed #dfe6e9; margin-top: 25px; padding-top: 20px;">
+                <h3 style="color: #6c5ce7;">🚀 초고속 지식 흡수 (JSON 벌크 업로드)</h3>
+                <p style="font-size: 13px; color: #636e72;">최대 100개의 JSON 파일을 한번에 선택하여 학습시킬 수 있습니다.</p>
+                <input type="file" id="json-files" accept=".json" multiple style="margin-bottom: 10px; font-size: 14px;">
+                <br>
+                <button class="save-btn" onclick="uploadJSONBulk()" style="background: #6c5ce7;">JSON 벌크 학습 시작</button>
+            </div>
+        </div>
+
+        <div class="knowledge-card" style="border-color: #fab1a0;">
+            <h3 style="color: #e17055;">🗂️ 지식 파일 관리함</h3>
+            <div id="file-list-container">
+                <p style="font-size: 14px; color: #b2bec3;">학습된 파일 목록을 불러오는 중...</p>
+            </div>
+        </div>
+
+        <hr style="border: 0; height: 1px; background: #dfe6e9; margin: 40px 0;">
+        <h2>실시간 대화 모니터링</h2>
+        <div id="history-container">데이터를 불러오는 중...</div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // 직접 텍스트 저장
+        function saveKnowledge() {
+            const content = $('#knowledge-input').val().trim();
+            if(!content) { alert("내용을 입력해주세요."); return; }
+            $.ajax({
+                url: '/api/admin/add_knowledge',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ content: content }),
+                success: function() {
+                    alert("지식이 저장되었습니다!");
+                    $('#knowledge-input').val('');
+                    loadFileList();
+                }
+            });
+        }
+
+        // [수정] JSON 벌크 업로드 함수 (FormData 구성 방식 개선)
+        function uploadJSONBulk() {
+            const fileInput = document.getElementById('json-files');
+            const files = fileInput.files;
+            if (files.length === 0) { alert("JSON 파일들을 선택해주세요."); return; }
+
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+
+            const btn = event.target;
+            btn.innerText = `${files.length}개 파일 학습 중...`;
+            btn.disabled = true;
+
+            $.ajax({
+                url: '/api/admin/upload_json',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    alert(response.message);
+                    fileInput.value = '';
+                    loadFileList(); // 파일 목록 즉시 갱신
+                },
+                error: function(xhr) {
+                    alert("학습에 실패했습니다. 파일을 다시 확인해주세요.");
+                },
+                complete: function() {
+                    btn.innerText = "JSON 벌크 학습 시작";
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        // [수정] 지식 파일 목록 불러오기 및 삭제 로직 통합
+        function loadFileList() {
+            $.get('/api/admin/knowledge_files', function(data) {
+                const container = $('#file-list-container');
+                container.empty();
+                if (!data || data.length === 0) {
+                    container.html('<p style="font-size: 14px; color: #b2bec3;">학습된 파일이 없습니다.</p>');
+                    return;
+                }
+                data.forEach(filename => {
+                    if(filename) {
+                        const fileHtml = `
+                            <div class="file-item">
+                                <span style="font-size: 14px;">📄 ${filename}</span>
+                                <button onclick="deleteFile('${filename}')" style="padding: 5px 10px; background: #ff7675; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">삭제</button>
+                            </div>`;
+                        container.append(fileHtml);
+                    }
+                });
+            });
+        }
+
+        // 특정 파일 삭제
+        function deleteFile(filename) {
+            if(!confirm(`'${filename}'의 지식을 모두 삭제할까요?`)) return;
+            $.ajax({
+                url: '/api/admin/delete_knowledge',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ filename: filename }),
+                success: function() {
+                    alert("삭제되었습니다.");
+                    loadFileList();
+                }
+            });
+        }
+
+        // 실시간 모니터링
+        function loadData() {
+            $.get('/api/admin/history', function(data) {
+                const container = $('#history-container');
+                container.empty();
+                if (!data || data.length === 0) {
+                    container.html('<p>대화가 없습니다.</p>');
+                    return;
+                }
+                const grouped = {};
+                data.forEach(item => {
+                    if (!grouped[item.user_id]) grouped[item.user_id] = [];
+                    grouped[item.user_id].push(item);
+                });
+                for (const userId in grouped) {
+                    let html = `<div class="user-group"><div class="user-id">User: ${userId}</div>`;
+                    grouped[userId].forEach(msg => {
+                        html += `<div class="chat-line role-${msg.role}"><strong>${msg.role.toUpperCase()}:</strong> ${msg.message}</div>`;
+                    });
+                    html += `</div>`;
+                    container.append(html);
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            loadFileList();
+            loadData();
+            setInterval(loadData, 5000);
+        });
+    </script>
+</body>
+</html>

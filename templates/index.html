@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global AI Assistant</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/bot_icon.png') }}" type="image/png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="chat-container">
+        <header>
+            <div class="profile-container">
+                <img src="{{ url_for('static', filename='images/bot_main.png') }}" alt="Profile" class="main-profile">
+                <div class="status-dot"></div>
+            </div>
+            <div class="header-text">
+                <h1>Global JINPD AI</h1>
+                <p>ai.jinpd 다국어 실시간 상담 서비스</p>
+            </div>
+        </header>
+
+        <div id="chat-box" class="chat-box">
+            <div class="msg-wrapper bot-wrapper">
+                <img src="{{ url_for('static', filename='images/bot_icon.png') }}" class="chat-icon">
+                <div class="message bot">안녕하세요, 무엇이든 물어보세요. 입력하신 언어로 답변해 드립니다.</div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="메시지를 입력하세요..." autocomplete="off">
+            <button id="send-btn">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 중요: 외부 JS 파일이 Jinja2 문법을 모르기 때문에,
+        // 여기서 미리 봇 아이콘 경로를 전역 변수로 선언하여 넘겨줍니다.
+        const BOT_ICON_URL = "{{ url_for('static', filename='images/bot_icon.png') }}";
+    </script>
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+</body>
+</html>
